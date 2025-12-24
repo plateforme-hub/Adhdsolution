@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Focus AI Assistant</title>
+<title>Focus AI Website</title>
 
 <style>
   body {
@@ -19,15 +19,22 @@
     padding: 20px;
   }
 
-  h1 {
+  .page {
+    display: none;
+  }
+
+  .page.active {
+    display: block;
+  }
+
+  h1, h2 {
     text-align: center;
-    margin-bottom: 20px;
   }
 
   .card {
     background: #1e293b;
     padding: 15px;
-    border-radius: 12px;
+    border-radius: 14px;
     margin-bottom: 15px;
   }
 
@@ -35,39 +42,38 @@
     width: 100%;
     padding: 10px;
     margin-bottom: 10px;
-    border-radius: 8px;
+    border-radius: 10px;
     border: none;
-    outline: none;
   }
 
   button {
     width: 100%;
     padding: 10px;
-    background: #38bdf8;
+    border-radius: 10px;
     border: none;
-    border-radius: 8px;
-    cursor: pointer;
+    background: #38bdf8;
     font-weight: bold;
-  }
-
-  button:hover {
-    background: #0ea5e9;
-  }
-
-  ul {
-    list-style: none;
-    padding: 0;
-  }
-
-  li {
-    background: #334155;
-    padding: 8px;
-    border-radius: 6px;
-    margin-bottom: 6px;
-  }
-
-  .session-buttons button {
+    cursor: pointer;
     margin-top: 8px;
+  }
+
+  button.secondary {
+    background: #64748b;
+  }
+
+  /* SESSION UI */
+  .chat-box {
+    border-radius: 16px;
+    padding: 15px;
+    margin-bottom: 12px;
+  }
+
+  .bot {
+    background: #1e40af;
+  }
+
+  .user {
+    background: #334155;
   }
 
   .small {
@@ -81,110 +87,114 @@
 
 <div class="app">
 
-<h1>🧠 Focus AI</h1>
-
-<!-- USER DATA -->
-<div class="card">
-  <h2>User Data</h2>
-  <input id="name" placeholder="Your name">
-  <select id="focus">
-    <option value="">Focus level</option>
-    <option>Low</option>
-    <option>Medium</option>
-    <option>High</option>
-  </select>
-  <button onclick="startSession()">Start Session</button>
-</div>
-
-<!-- TASKS -->
-<div class="card">
-  <h2>Tasks</h2>
-  <input id="taskInput" placeholder="Add a task">
-  <button onclick="addTask()">Add Task</button>
-  <ul id="taskList"></ul>
-</div>
-
-<!-- SESSION -->
-<div class="card">
-  <h2>Focus Session</h2>
-  <p id="sessionText" class="small">Waiting for session to start...</p>
-
-  <div class="session-buttons">
-    <button onclick="simplify()">Simplify Info</button>
-    <button onclick="switchFocus()">Switch Focus</button>
-    <button onclick="completeTask()">Complete Task</button>
+<!-- PAGE 1 -->
+<div class="page active" id="page1">
+  <h1>Focus AI</h1>
+  <div class="card">
+    <p class="small">
+      • Collect your data  
+      • Guide you step by step  
+      • Stop when you need clarity  
+    </p>
+    <input id="name" placeholder="Your name">
+    <select id="focus">
+      <option value="">Focus level</option>
+      <option>Low</option>
+      <option>Medium</option>
+      <option>High</option>
+    </select>
+    <button onclick="goTo(2)">Continue</button>
   </div>
 </div>
 
-<!-- SUMMARY -->
-<div class="card">
+<!-- PAGE 2 -->
+<div class="page" id="page2">
+  <h2>Tasks</h2>
+  <div class="card">
+    <input id="taskInput" placeholder="Add a task">
+    <button onclick="addTask()">Add Task</button>
+    <ul id="taskList"></ul>
+    <button onclick="goTo(3)">Start Session</button>
+  </div>
+</div>
+
+<!-- PAGE 3 SESSION -->
+<div class="page" id="page3">
+  <h2>Focus Session</h2>
+
+  <!-- BOT BOX -->
+  <div class="chat-box bot">
+    <p id="botText">
+      Hello. I will explain one step only.
+      Tell me when you understand.
+    </p>
+  </div>
+
+  <!-- USER BOX -->
+  <div class="chat-box user">
+    <button onclick="explainAgain()">Explain again</button>
+    <button onclick="simplify()">Simplify more</button>
+    <button onclick="understood()">I understand</button>
+    <button class="secondary" onclick="stop()">Stop session</button>
+  </div>
+</div>
+
+<!-- PAGE 4 SUMMARY -->
+<div class="page" id="page4">
   <h2>Session Summary</h2>
-  <p id="summary" class="small">No session yet.</p>
+  <div class="card">
+    <p id="summary"></p>
+    <button onclick="goTo(1)">Restart</button>
+  </div>
 </div>
 
 </div>
 
 <script>
   let tasks = [];
-  let completedTasks = 0;
-  let sessionActive = false;
+  let explanations = 0;
 
-  function startSession() {
-    const name = document.getElementById("name").value;
-    const focus = document.getElementById("focus").value;
-
-    if (!name || !focus) {
-      alert("Please fill user data");
-      return;
-    }
-
-    sessionActive = true;
-    document.getElementById("sessionText").innerText =
-      `Hi ${name}. Focus level: ${focus}. Let's go slow and clear.`;
+  function goTo(page) {
+    document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+    document.getElementById("page" + page).classList.add("active");
   }
 
   function addTask() {
     const input = document.getElementById("taskInput");
     if (!input.value) return;
-
     tasks.push(input.value);
+    const li = document.createElement("li");
+    li.innerText = input.value;
+    document.getElementById("taskList").appendChild(li);
     input.value = "";
-    renderTasks();
   }
 
-  function renderTasks() {
-    const list = document.getElementById("taskList");
-    list.innerHTML = "";
-    tasks.forEach(task => {
-      const li = document.createElement("li");
-      li.innerText = task;
-      list.appendChild(li);
-    });
+  function explainAgain() {
+    explanations++;
+    document.getElementById("botText").innerText =
+      "Okay. Same idea, slower. Focus on ONE small action only.";
   }
 
   function simplify() {
-    if (!sessionActive) return;
-    document.getElementById("sessionText").innerText =
-      "Simplified: Do ONE small step. Nothing else matters now.";
+    explanations++;
+    document.getElementById("botText").innerText =
+      "Simplified: Do ONE tiny step. Nothing else matters.";
   }
 
-  function switchFocus() {
-    if (!sessionActive) return;
-    document.getElementById("sessionText").innerText =
-      "Focus switched. Fresh start. Pick the next simple task.";
-  }
-
-  function completeTask() {
-    if (!tasks.length) return;
-
-    tasks.shift();
-    completedTasks++;
-    renderTasks();
+  function understood() {
+    document.getElementById("botText").innerText =
+      "Good. We move forward only because you confirmed understanding.";
+    setTimeout(() => goTo(4), 1000);
 
     document.getElementById("summary").innerText =
-      `Sessions joined: 1
-Tasks completed: ${completedTasks}
-Improvements: Better clarity, better focus`;
+      `Tasks added: ${tasks.length}
+Explanations requested: ${explanations}
+Improvement: Clearer understanding & focus`;
+  }
+
+  function stop() {
+    document.getElementById("botText").innerText =
+      "Session paused. You are in control.";
   }
 </script>
 
