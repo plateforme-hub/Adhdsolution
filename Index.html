@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Focus AI Assistant</title>
+
+<style>
+  body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #0f172a;
+    color: #e5e7eb;
+    display: flex;
+    justify-content: center;
+  }
+
+  .app {
+    width: 420px;
+    padding: 20px;
+  }
+
+  h1 {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+
+  .card {
+    background: #1e293b;
+    padding: 15px;
+    border-radius: 12px;
+    margin-bottom: 15px;
+  }
+
+  input, select {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    border: none;
+    outline: none;
+  }
+
+  button {
+    width: 100%;
+    padding: 10px;
+    background: #38bdf8;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+  }
+
+  button:hover {
+    background: #0ea5e9;
+  }
+
+  ul {
+    list-style: none;
+    padding: 0;
+  }
+
+  li {
+    background: #334155;
+    padding: 8px;
+    border-radius: 6px;
+    margin-bottom: 6px;
+  }
+
+  .session-buttons button {
+    margin-top: 8px;
+  }
+
+  .small {
+    font-size: 14px;
+    opacity: 0.9;
+  }
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+<h1>🧠 Focus AI</h1>
+
+<!-- USER DATA -->
+<div class="card">
+  <h2>User Data</h2>
+  <input id="name" placeholder="Your name">
+  <select id="focus">
+    <option value="">Focus level</option>
+    <option>Low</option>
+    <option>Medium</option>
+    <option>High</option>
+  </select>
+  <button onclick="startSession()">Start Session</button>
+</div>
+
+<!-- TASKS -->
+<div class="card">
+  <h2>Tasks</h2>
+  <input id="taskInput" placeholder="Add a task">
+  <button onclick="addTask()">Add Task</button>
+  <ul id="taskList"></ul>
+</div>
+
+<!-- SESSION -->
+<div class="card">
+  <h2>Focus Session</h2>
+  <p id="sessionText" class="small">Waiting for session to start...</p>
+
+  <div class="session-buttons">
+    <button onclick="simplify()">Simplify Info</button>
+    <button onclick="switchFocus()">Switch Focus</button>
+    <button onclick="completeTask()">Complete Task</button>
+  </div>
+</div>
+
+<!-- SUMMARY -->
+<div class="card">
+  <h2>Session Summary</h2>
+  <p id="summary" class="small">No session yet.</p>
+</div>
+
+</div>
+
+<script>
+  let tasks = [];
+  let completedTasks = 0;
+  let sessionActive = false;
+
+  function startSession() {
+    const name = document.getElementById("name").value;
+    const focus = document.getElementById("focus").value;
+
+    if (!name || !focus) {
+      alert("Please fill user data");
+      return;
+    }
+
+    sessionActive = true;
+    document.getElementById("sessionText").innerText =
+      `Hi ${name}. Focus level: ${focus}. Let's go slow and clear.`;
+  }
+
+  function addTask() {
+    const input = document.getElementById("taskInput");
+    if (!input.value) return;
+
+    tasks.push(input.value);
+    input.value = "";
+    renderTasks();
+  }
+
+  function renderTasks() {
+    const list = document.getElementById("taskList");
+    list.innerHTML = "";
+    tasks.forEach(task => {
+      const li = document.createElement("li");
+      li.innerText = task;
+      list.appendChild(li);
+    });
+  }
+
+  function simplify() {
+    if (!sessionActive) return;
+    document.getElementById("sessionText").innerText =
+      "Simplified: Do ONE small step. Nothing else matters now.";
+  }
+
+  function switchFocus() {
+    if (!sessionActive) return;
+    document.getElementById("sessionText").innerText =
+      "Focus switched. Fresh start. Pick the next simple task.";
+  }
+
+  function completeTask() {
+    if (!tasks.length) return;
+
+    tasks.shift();
+    completedTasks++;
+    renderTasks();
+
+    document.getElementById("summary").innerText =
+      `Sessions joined: 1
+Tasks completed: ${completedTasks}
+Improvements: Better clarity, better focus`;
+  }
+</script>
+
+</body>
+</html>
