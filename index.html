@@ -1,200 +1,135 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
-<meta charset="UTF-8">
-<title>Focus AI Website</title>
-
-<style>
-  body {
-    margin: 0;
-    font-family: Arial, sans-serif;
-    background: #0f172a;
-    color: #e5e7eb;
-    display: flex;
-    justify-content: center;
-  }
-
-  .app {
-    width: 420px;
-    padding: 20px;
-  }
-
-  .page {
-    display: none;
-  }
-
-  .page.active {
-    display: block;
-  }
-
-  h1, h2 {
-    text-align: center;
-  }
-
-  .card {
-    background: #1e293b;
-    padding: 15px;
-    border-radius: 14px;
-    margin-bottom: 15px;
-  }
-
-  input, select {
-    width: 100%;
-    padding: 10px;
-    margin-bottom: 10px;
-    border-radius: 10px;
-    border: none;
-  }
-
-  button {
-    width: 100%;
-    padding: 10px;
-    border-radius: 10px;
-    border: none;
-    background: #38bdf8;
-    font-weight: bold;
-    cursor: pointer;
-    margin-top: 8px;
-  }
-
-  button.secondary {
-    background: #64748b;
-  }
-
-  /* SESSION UI */
-  .chat-box {
-    border-radius: 16px;
-    padding: 15px;
-    margin-bottom: 12px;
-  }
-
-  .bot {
-    background: #1e40af;
-  }
-
-  .user {
-    background: #334155;
-  }
-
-  .small {
-    font-size: 14px;
-    opacity: 0.9;
-  }
-</style>
+  <meta charset="UTF-8">
+  <title>FocusMate Prototype</title>
+  <style>
+    body { font-family: Arial, sans-serif; background:#F0F8FF; margin:0; padding:0; display:flex; flex-direction:column; align-items:center; }
+    h1 { color:#2E86C1; margin-top:50px; }
+    h3 { color:#117A65; margin-bottom:30px; }
+    .button { padding:15px 30px; margin:10px; font-size:1.2rem; border-radius:10px; border:none; cursor:pointer; color:white; }
+    .student-btn { background-color:#5DADE2; }
+    .parent-btn { background-color:#58D68D; }
+    .container { max-width:500px; width:90%; margin-top:30px; }
+    .task { display:flex; justify-content:space-between; align-items:center; padding:15px; margin:10px 0; border-radius:10px; border:1px solid #ccc; background-color:#fff; }
+    .task.completed { background-color:#D5F5E3; text-decoration:line-through; }
+    .progress-bar { height:20px; border-radius:10px; background:#D6EAF8; margin:10px 0; }
+    .progress-inner { height:100%; border-radius:10px; background:#58D68D; width:0%; }
+    .hidden { display:none; }
+  </style>
 </head>
-
 <body>
 
-<div class="app">
+  <h1>FocusMate</h1>
+  <h3>Turn chaos into clarity</h3>
 
-<!-- PAGE 1 -->
-<div class="page active" id="page1">
-  <h1>Focus AI</h1>
-  <div class="card">
-    <p class="small">
-      • Collect your data  
-      • Guide you step by step  
-      • Stop when you need clarity  
-    </p>
-    <input id="name" placeholder="Your name">
-    <select id="focus">
-      <option value="">Focus level</option>
-      <option>Low</option>
-      <option>Medium</option>
-      <option>High</option>
-    </select>
-    <button onclick="goTo(2)">Continue</button>
-  </div>
-</div>
-
-<!-- PAGE 2 -->
-<div class="page" id="page2">
-  <h2>Tasks</h2>
-  <div class="card">
-    <input id="taskInput" placeholder="Add a task">
-    <button onclick="addTask()">Add Task</button>
-    <ul id="taskList"></ul>
-    <button onclick="goTo(3)">Start Session</button>
-  </div>
-</div>
-
-<!-- PAGE 3 SESSION -->
-<div class="page" id="page3">
-  <h2>Focus Session</h2>
-
-  <!-- BOT BOX -->
-  <div class="chat-box bot">
-    <p id="botText">
-      Hello. I will explain one step only.
-      Tell me when you understand.
-    </p>
+  <div id="home" class="container">
+    <button class="button student-btn" onclick="showStudent()">Je suis élève</button>
+    <button class="button parent-btn" onclick="showParent()">Je suis parent</button>
   </div>
 
-  <!-- USER BOX -->
-  <div class="chat-box user">
-    <button onclick="explainAgain()">Explain again</button>
-    <button onclick="simplify()">Simplify more</button>
-    <button onclick="understood()">I understand</button>
-    <button class="secondary" onclick="stop()">Stop session</button>
+  <div id="studentDashboard" class="container hidden">
+    <h2>Dashboard Élève</h2>
+    <div id="timerDisplay" style="font-size:2rem; text-align:center; margin:20px 0;"></div>
+    <div id="tasksContainer"></div>
+    <button onclick="backHome()">Retour</button>
   </div>
-</div>
 
-<!-- PAGE 4 SUMMARY -->
-<div class="page" id="page4">
-  <h2>Session Summary</h2>
-  <div class="card">
-    <p id="summary"></p>
-    <button onclick="goTo(1)">Restart</button>
+  <div id="parentDashboard" class="container hidden">
+    <h2>Dashboard Parent</h2>
+    <div id="parentTasksContainer"></div>
+    <div class="progress-bar">
+      <div id="progressInner" class="progress-inner"></div>
+    </div>
+    <button onclick="backHome()">Retour</button>
   </div>
-</div>
-
-</div>
 
 <script>
-  let tasks = [];
-  let explanations = 0;
+  // Liste de tâches simulées
+  let tasks = [
+    {name:"Math - Exercices 1", completed:false},
+    {name:"Lecture - Chapitre 2", completed:false},
+    {name:"Sciences - TP", completed:false}
+  ];
 
-  function goTo(page) {
-    document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
-    document.getElementById("page" + page).classList.add("active");
+  let currentTask = null;
+  let timer = 0;
+  let timerInterval = null;
+
+  function showStudent(){
+    document.getElementById("home").classList.add("hidden");
+    document.getElementById("studentDashboard").classList.remove("hidden");
+    renderTasks();
   }
 
-  function addTask() {
-    const input = document.getElementById("taskInput");
-    if (!input.value) return;
-    tasks.push(input.value);
-    const li = document.createElement("li");
-    li.innerText = input.value;
-    document.getElementById("taskList").appendChild(li);
-    input.value = "";
+  function showParent(){
+    document.getElementById("home").classList.add("hidden");
+    document.getElementById("parentDashboard").classList.remove("hidden");
+    renderParent();
   }
 
-  function explainAgain() {
-    explanations++;
-    document.getElementById("botText").innerText =
-      "Okay. Same idea, slower. Focus on ONE small action only.";
+  function backHome(){
+    clearInterval(timerInterval);
+    document.getElementById("studentDashboard").classList.add("hidden");
+    document.getElementById("parentDashboard").classList.add("hidden");
+    document.getElementById("home").classList.remove("hidden");
   }
 
-  function simplify() {
-    explanations++;
-    document.getElementById("botText").innerText =
-      "Simplified: Do ONE tiny step. Nothing else matters.";
+  function renderTasks(){
+    const container = document.getElementById("tasksContainer");
+    container.innerHTML = "";
+    tasks.forEach((task, index)=>{
+      const div = document.createElement("div");
+      div.className = "task" + (task.completed?" completed":"");
+      div.innerHTML = `<span>${task.name}</span>
+      <div>
+        <button onclick="startTask(${index})" ${task.completed?"disabled":""}>Start</button>
+        <button onclick="completeTask(${index})" ${task.completed?"disabled":""}>Terminer</button>
+      </div>`;
+      container.appendChild(div);
+    });
   }
 
-  function understood() {
-    document.getElementById("botText").innerText =
-      "Good. We move forward only because you confirmed understanding.";
-    setTimeout(() => goTo(4), 1000);
-
-    document.getElementById("summary").innerText =
-      `Tasks added: ${tasks.length}
-Explanations requested: ${explanations}
-Improvement: Clearer understanding & focus`;
+  function renderParent(){
+    const container = document.getElementById("parentTasksContainer");
+    container.innerHTML = "";
+    tasks.forEach(task=>{
+      const div = document.createElement("div");
+      div.className = "task" + (task.completed?" completed":"");
+      div.textContent = task.name + " : " + (task.completed?"✅ Terminé":"⏳ En cours");
+      container.appendChild(div);
+    });
+    const progressPercent = tasks.length ? Math.round(tasks.filter(t=>t.completed).length / tasks.length *100) : 100;
+    document.getElementById("progressInner").style.width = progressPercent+"%";
   }
 
-  function stop() {
-    document.getElementById("botText").innerText =
-      "Session paused. You are in control.";
+  function startTask(index){
+    if(timerInterval) clearInterval(timerInterval);
+    currentTask = tasks[index];
+    timer = 1500; // 25min
+    updateTimerDisplay();
+    timerInterval = setInterval(()=>{
+      timer--;
+      updateTimerDisplay();
+      if(timer<=0){
+        clearInterval(timerInterval);
+        alert("Fin de session pour "+currentTask.name);
+      }
+    },1000);
+  }
+
+  function completeTask(index){
+    tasks[index].completed = true;
+    renderTasks();
+    renderParent();
+    if(currentTask === tasks[index]) clearInterval(timerInterval);
+    alert("Tâche '"+tasks[index].name+"' terminée !");
+  }
+
+  function updateTimerDisplay(){
+    const minutes = Math.floor(timer/60);
+    const seconds = timer%60;
+    document.getElementById("timerDisplay").textContent = `${minutes}:${seconds<10?"0"+seconds:seconds}`;
   }
 </script>
 
